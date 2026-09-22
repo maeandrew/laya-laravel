@@ -13,7 +13,7 @@ The provider supports Laya's `choice`, `score`, and `noul` answers and uses Laya
 - `laravel/ai` 1.x with its Classification API (currently a development release)
 - A reachable Laya server exposing `POST /v1/systemone`
 
-The Classification API is not available in the latest tagged `laravel/ai` release yet, so Composer must be able to resolve its `1.x-dev` branch. This package declares that development dependency directly.
+The Classification API is not available in the latest tagged `laravel/ai` release yet. Composer applies your application's stability policy to transitive dependencies, so explicitly require the `1.x-dev` branch while it remains untagged.
 
 ## Install
 
@@ -31,7 +31,7 @@ Until the first Packagist release, add the GitHub repository to your application
 ```
 
 ```bash
-composer require maeandrew/laya-laravel:dev-main
+composer require laravel/ai:1.x-dev maeandrew/laya-laravel:dev-main
 ```
 
 Laravel discovers the service provider automatically. To publish its configuration file, run:
