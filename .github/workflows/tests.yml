@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.3'
+            testbench: '^10.6'
+          - php: '8.3'
+            testbench: '^11.0'
+          - php: '8.4'
+            testbench: '^10.6'
+          - php: '8.4'
+            testbench: '^11.0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          tools: composer:v2
+          coverage: none
+      - run: composer update --with "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --prefer-dist
+      - run: composer test
+      - run: composer test:lint
