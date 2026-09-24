@@ -15,7 +15,7 @@ return [
     |
     */
 
-    'url' => env('LAYA_URL', 'http://localhost:8000/v1'),
+    'url' => env('LAYA_URL') ?: 'http://localhost:8000/v1',
 
     'key' => env('LAYA_API_KEY'),
 
@@ -32,7 +32,7 @@ return [
 
     'models' => [
         'classification' => [
-            'default' => env('LAYA_MODEL', 'auto'),
+            'default' => env('LAYA_MODEL') ?: 'auto',
         ],
     ],
 

@@ -4,6 +4,7 @@ namespace Laya\Laravel\Tests\Feature;
 
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use InvalidArgumentException;
 use Laravel\Ai\AiManager;
 use Laravel\Ai\Classification;
 use Laravel\Ai\Classification\Boolean;
@@ -14,6 +15,7 @@ use Laravel\Ai\Responses\Data\ChoiceAnswer;
 use Laravel\Ai\Responses\Data\ScoreAnswer;
 use Laya\Laravel\LayaProvider;
 use Laya\Laravel\Tests\TestCase;
+use Orchestra\Testbench\Attributes\DefineEnvironment;
 
 class LayaProviderTest extends TestCase
 {
@@ -147,6 +149,58 @@ class LayaProviderTest extends TestCase
             && $request->hasHeader('Authorization', 'Bearer test-secret')
             && $request->hasHeader('X-Client', 'laya-laravel-tests')
             && $request->data()['model'] === 'multilingual');
+    }
+
+    #[DefineEnvironment('defineUserProviderEntry')]
+    public function test_a_user_entry_in_ai_config_is_merged_over_the_package_config(): void
+    {
+        $this->assertSame([
+            'driver' => 'laya',
+            'url' => 'http://gpu-box:8000/v1',
+            'key' => 'user-secret',
+            'models' => ['classification' => ['default' => 'auto']],
+        ], config('ai.providers.laya'));
+    }
+
+    protected function defineUserProviderEntry($app): void
+    {
+        // Mirrors an entry written like laravel/ai's own, with LAYA_URL set but
+        // LAYA_MODEL left unset or empty in .env.
+        $app['config']->set('laya.url', 'http://gpu-box:8000/v1');
+        $app['config']->set('ai.providers.laya', [
+            'driver' => 'laya',
+            'key' => 'user-secret',
+            'url' => null,
+            'models' => ['classification' => ['default' => '']],
+        ]);
+    }
+
+    public function test_a_blank_model_falls_back_to_auto(): void
+    {
+        config(['ai.providers.laya.models.classification.default' => '']);
+
+        $this->assertSame('auto', app(AiManager::class)->classificationProvider('laya')->defaultClassificationModel());
+    }
+
+    public function test_a_blank_url_fails_with_a_clear_message(): void
+    {
+        config(['ai.providers.laya.url' => '']);
+
+        Http::preventStrayRequests();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('LAYA_URL');
+
+        Classification::of('Please respond today.')
+            ->question('urgent', new Boolean('Is this time-sensitive?'))
+            ->classify('laya');
+    }
+
+    public function test_the_driver_survives_a_rebuilt_ai_manager(): void
+    {
+        app()->forgetInstance(AiManager::class);
+
+        $this->assertInstanceOf(LayaProvider::class, app(AiManager::class)->classificationProvider('laya'));
     }
 
     public function test_laravel_classification_fake_works_without_http_requests(): void

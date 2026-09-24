@@ -2,23 +2,11 @@
 
 namespace Laya\Laravel;
 
-use Illuminate\Contracts\Events\Dispatcher;
 use Laravel\Ai\Contracts\Gateway\ClassificationGateway;
-use Laravel\Ai\Contracts\Providers\ClassificationProvider;
-use Laravel\Ai\Providers\Concerns\Classifies;
-use Laravel\Ai\Providers\Concerns\HasClassificationGateway;
-use Laravel\Ai\Providers\Provider;
+use Laravel\Ai\Providers\TypeSafeProvider;
 
-class LayaProvider extends Provider implements ClassificationProvider
+class LayaProvider extends TypeSafeProvider
 {
-    use Classifies;
-    use HasClassificationGateway;
-
-    public function __construct(
-        protected array $config,
-        protected Dispatcher $events,
-    ) {}
-
     /**
      * Get the name of the default classification model.
      *
@@ -27,7 +15,7 @@ class LayaProvider extends Provider implements ClassificationProvider
      */
     public function defaultClassificationModel(): string
     {
-        return $this->config['models']['classification']['default'] ?? 'auto';
+        return ($this->config['models']['classification']['default'] ?? null) ?: 'auto';
     }
 
     /**

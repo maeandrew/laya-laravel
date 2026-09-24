@@ -52,7 +52,7 @@ LAYA_API_KEY=
 LAYA_MODEL=auto
 ```
 
-The provider is registered as `laya` in `laravel/ai`. Pass it to `classify()` explicitly, or set `ai.default_for_classification` to `laya` in your application's `config/ai.php`.
+The provider is registered as `laya` in `laravel/ai`. Pass it to `classify()` explicitly, or set `ai.default_for_classification` to `laya` in your application's `config/ai.php`. If you also add a `laya` entry under `providers` in `config/ai.php`, the values it sets override `config/laya.php`; values it leaves empty or null fall back to it.
 
 ## Use
 
@@ -98,7 +98,7 @@ $result = Classification::of('A test ticket.')
     ->question('urgent', new Boolean('Is this urgent?'))
     ->classify('laya');
 
-Classification::assertClassified(fn ($prompt) => $prompt->provider === 'laya');
+Classification::assertClassified(fn ($prompt) => $prompt->provider->name() === 'laya');
 ```
 
 ## Laya server
